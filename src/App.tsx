@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GameField } from "./components";
 
 import { initialFieldData } from "./components/config";
@@ -10,7 +10,7 @@ import { squareSymbols2 as sqSmb, SquareValue } from "./assets/squareSymbols";
 
 function App() {
   const [count, setCount] = useState(0);
-  const [isMoving, setIsMoving] = useState(false);
+  // const [isMoving, setIsMoving] = useState(false);
   const [fieldData, setFieldData] = useState<SquareValue[][]>(initialFieldData);
   const [nextPiece, setNextPiece] = useState<SquareValue>("1");
   const [score, setScore] = useState<number>(0);
@@ -20,7 +20,7 @@ function App() {
   const { isGameOver } = useIsGameOver(fieldData);
 
   const makeMove = (coordinateX: number, coordinateY: number) => {
-    setIsMoving(true);
+    // setIsMoving(true);
     if (fieldData[coordinateY][coordinateX] !== ("0" as SquareValue)) {
       return;
     }
@@ -35,7 +35,7 @@ function App() {
       newFieldData
     );
 
-    setIsMoving(false);
+    // setIsMoving(false);
     setFieldData(JSON.parse(JSON.stringify(updatedField)));
     setCount((count) => count + 1);
     setScore((score) => score + additionalScore);
