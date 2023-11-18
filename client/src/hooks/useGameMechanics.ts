@@ -1,6 +1,9 @@
-import { fieldLength, fieldHeight } from "../components/config";
+import { SquareValue } from "../assets/squareSymbols";
 
-export const useGameMechanics = () => {
+export const useGameMechanics = (fieldData: SquareValue[][]) => {
+  const fieldHeight = fieldData.length;
+  const fieldLength = fieldData[0].length;
+
   const checkNeighbour = (
     coordinateX: number,
     coordinateY: number,

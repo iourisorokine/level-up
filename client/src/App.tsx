@@ -9,16 +9,17 @@ import { useIsGameOver } from "./hooks/useIsGameOver";
 import { squareSymbols2 as sqSmb, SquareValue } from "./assets/squareSymbols";
 
 const levelReachingScores = {
-  1: 20,
-  2: 50,
+  1: 30,
+  2: 60,
   3: 100,
-  4: 180,
-  5: 250,
+  4: 150,
+  5: 220,
   6: 350,
   7: 500,
   8: 750,
   9: 1000,
-  10: 2000,
+  10: 1250,
+  11: 1500,
 };
 
 const pointsToNextLevel = {
@@ -32,22 +33,22 @@ const pointsToNextLevel = {
   8: levelReachingScores[8] - levelReachingScores[7],
   9: levelReachingScores[9] - levelReachingScores[8],
   10: levelReachingScores[10] - levelReachingScores[9],
+  11: levelReachingScores[11] - levelReachingScores[10],
 };
 
 function App() {
-  // const [isMoving, setIsMoving] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
   const [fieldData, setFieldData] = useState<SquareValue[][]>(initialFieldData);
   const [nextPiece, setNextPiece] = useState<SquareValue>("1");
   const [score, setScore] = useState<number>(0);
   const [level, setLevel] = useState<number>(1);
   const [progressBarPercentage, setProgressBarPercentage] = useState<number>(0);
 
-  const { updateFieldRecursive } = useGameMechanics();
+  const { updateFieldRecursive } = useGameMechanics(fieldData);
 
   const { isGameOver } = useIsGameOver(fieldData);
-
   const makeMove = (coordinateX: number, coordinateY: number) => {
-    // setIsMoving(true);
+    setIsMoving(true);
     if (fieldData[coordinateY][coordinateX] !== ("0" as SquareValue)) {
       return;
     }
@@ -61,8 +62,8 @@ function App() {
       coordinateY,
       newFieldData
     );
-
-    // setIsMoving(false);
+    // setTimeout(() => {
+    //   setIsMoving(false);
     setFieldData(JSON.parse(JSON.stringify(updatedField)));
     setProgressBarPercentage(
       ((score +
@@ -72,6 +73,7 @@ function App() {
         100
     );
     setScore((score) => score + additionalScore);
+    // }, 200);
   };
 
   useEffect(() => {
@@ -80,6 +82,19 @@ function App() {
       setProgressBarPercentage(0);
     }
   }, [score]);
+
+  useEffect(() => {
+    if (level % 2 === 0) {
+      setFieldData((prevFieldData) => {
+        const newFieldData = JSON.parse(JSON.stringify(prevFieldData));
+        newFieldData.forEach((row: SquareValue[]) => row.push("0"));
+        newFieldData.push(
+          new Array(newFieldData[0].length).fill("0") as SquareValue[]
+        );
+        return newFieldData;
+      });
+    }
+  }, [level]);
 
   return (
     <>
