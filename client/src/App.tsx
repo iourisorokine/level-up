@@ -7,6 +7,7 @@ import "./App.css";
 import { useGameMechanics } from "./hooks/useGameMechanics";
 import { useIsGameOver } from "./hooks/useIsGameOver";
 import { squareSymbols2 as sqSmb, SquareValue } from "./assets/squareSymbols";
+import { set } from "firebase/database";
 
 const levelReachingScores = {
   1: 30,
@@ -20,6 +21,7 @@ const levelReachingScores = {
   9: 1000,
   10: 1250,
   11: 1500,
+  12: 2000,
 };
 
 const pointsToNextLevel = {
@@ -34,10 +36,14 @@ const pointsToNextLevel = {
   9: levelReachingScores[9] - levelReachingScores[8],
   10: levelReachingScores[10] - levelReachingScores[9],
   11: levelReachingScores[11] - levelReachingScores[10],
+  12: levelReachingScores[12] - levelReachingScores[11],
 };
 
+const DEFAULT_MESSAGE = "Align 3 of a kind!";
+
 function App() {
-  const [isMoving, setIsMoving] = useState(false);
+  // const [isMoving, setIsMoving] = useState(false);
+  const [message, setMessage] = useState<string>(DEFAULT_MESSAGE);
   const [fieldData, setFieldData] = useState<SquareValue[][]>(initialFieldData);
   const [nextPiece, setNextPiece] = useState<SquareValue>("1");
   const [score, setScore] = useState<number>(0);
@@ -48,7 +54,7 @@ function App() {
 
   const { isGameOver } = useIsGameOver(fieldData);
   const makeMove = (coordinateX: number, coordinateY: number) => {
-    setIsMoving(true);
+    // setIsMoving(true);
     if (fieldData[coordinateY][coordinateX] !== ("0" as SquareValue)) {
       return;
     }
@@ -78,13 +84,25 @@ function App() {
 
   useEffect(() => {
     if (score >= (levelReachingScores as any)[level]) {
+      setMessage(
+        (level + 1) % 3 === 0 && !(level > 9)
+          ? "Field extended!"
+          : `Level ${level + 1}!`
+      );
       setLevel((level) => level + 1);
       setProgressBarPercentage(0);
+      setTimeout(() => {
+        setMessage(DEFAULT_MESSAGE);
+      }, 2000);
     }
   }, [score]);
 
   useEffect(() => {
-    if (level % 2 === 0) {
+    if (isGameOver) setMessage("Game Over!");
+  }, [isGameOver]);
+
+  useEffect(() => {
+    if (level % 3 === 0 && !(level > 9)) {
       setFieldData((prevFieldData) => {
         const newFieldData = JSON.parse(JSON.stringify(prevFieldData));
         newFieldData.forEach((row: SquareValue[]) => row.push("0"));
@@ -98,7 +116,7 @@ function App() {
 
   return (
     <>
-      <h1>{isGameOver ? "Game Over!" : "Level-up!"}</h1>
+      <h1 style={{ fontSize: 36 }}>{message}</h1>
       <div
         style={{
           display: "flex",
