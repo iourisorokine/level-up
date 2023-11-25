@@ -1,43 +1,18 @@
 import { useState, useEffect } from "react";
 import { GameField } from "./components";
 
-import { initialFieldData } from "./components/config";
+import { initialFieldData, levelReachingScores } from "./components/config";
 import "./App.css";
+
+import {
+  canLevelUp,
+  calculateProgressBarPercentage,
+  getLevelUpMessage,
+} from "./components/utils";
 
 import { useGameMechanics } from "./hooks/useGameMechanics";
 import { useIsGameOver } from "./hooks/useIsGameOver";
 import { squareSymbols2 as sqSmb, SquareValue } from "./assets/squareSymbols";
-import { set } from "firebase/database";
-
-const levelReachingScores = {
-  1: 30,
-  2: 60,
-  3: 100,
-  4: 150,
-  5: 220,
-  6: 350,
-  7: 500,
-  8: 750,
-  9: 1000,
-  10: 1250,
-  11: 1500,
-  12: 2000,
-};
-
-const pointsToNextLevel = {
-  1: 20,
-  2: levelReachingScores[2] - levelReachingScores[1],
-  3: levelReachingScores[3] - levelReachingScores[2],
-  4: levelReachingScores[4] - levelReachingScores[3],
-  5: levelReachingScores[5] - levelReachingScores[4],
-  6: levelReachingScores[6] - levelReachingScores[5],
-  7: levelReachingScores[7] - levelReachingScores[6],
-  8: levelReachingScores[8] - levelReachingScores[7],
-  9: levelReachingScores[9] - levelReachingScores[8],
-  10: levelReachingScores[10] - levelReachingScores[9],
-  11: levelReachingScores[11] - levelReachingScores[10],
-  12: levelReachingScores[12] - levelReachingScores[11],
-};
 
 const DEFAULT_MESSAGE = "Align 3 of a kind!";
 
@@ -61,7 +36,9 @@ function App() {
     let newFieldData = JSON.parse(JSON.stringify(fieldData));
     newFieldData[coordinateY][coordinateX] = nextPiece;
     setFieldData(newFieldData);
-    setNextPiece(Math.ceil(Math.random() * 3).toString() as SquareValue);
+    setNextPiece(
+      Math.ceil(Math.random() * 3 + (level - 1) / 2).toString() as SquareValue
+    );
 
     const { updatedField, additionalScore } = updateFieldRecursive(
       coordinateX,
@@ -72,23 +49,15 @@ function App() {
     //   setIsMoving(false);
     setFieldData(JSON.parse(JSON.stringify(updatedField)));
     setProgressBarPercentage(
-      ((score +
-        additionalScore -
-        ((levelReachingScores as any)[level - 1] || 0)) /
-        (pointsToNextLevel as any)[level]) *
-        100
+      calculateProgressBarPercentage({ score, additionalScore, level })
     );
     setScore((score) => score + additionalScore);
     // }, 200);
   };
 
   useEffect(() => {
-    if (score >= (levelReachingScores as any)[level]) {
-      setMessage(
-        (level + 1) % 3 === 0 && !(level > 9)
-          ? "Field extended!"
-          : `Level ${level + 1}!`
-      );
+    if (score >= (levelReachingScores as any)[level] && canLevelUp(level)) {
+      setMessage(getLevelUpMessage(level));
       setLevel((level) => level + 1);
       setProgressBarPercentage(0);
       setTimeout(() => {
